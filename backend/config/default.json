@@ -1,0 +1,4 @@
+{
+    "serverPort" : 8000,
+    "dbUrl" : "mongodb://ilya:12345678@127.0.0.1:27017/file_manager?authSource=admin"
+}
