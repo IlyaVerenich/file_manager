@@ -1,4 +1,8 @@
 {
     "serverPort" : 8000,
-    "dbUrl" : "mongodb://ilya:12345678@127.0.0.1:27017/file_manager?authSource=admin"
+    "pg_user" : "postgres",
+    "pg_port" : 5432,
+    "pg_password" : "root",
+    "pg_db" : "file_manager_database",
+    "pg_host": "localhost"
 }

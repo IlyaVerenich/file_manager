@@ -1,4 +1,4 @@
-const Folder = require('../models/models');
+const db = require('../db/db.js');
 
 class FolderController {
     async getCurrent(req,res) {
@@ -6,13 +6,13 @@ class FolderController {
         if (id === undefined || !id) {
             res.status(400).json({message:`Field 'id' does not exist`})
         } else {
-            const folder = await Folder.find({_id:id});
-            if (!folder.length) {
+            const folder = await db.query(`SELECT * FROM folder where id=$1`, [id] )
+            if (!folder.rows.length) {
                 res.status(200).json({
                     message:`Folder with id:${id} not found`
                 })
             } else {
-                res.status(200).json({folder});
+                res.status(200).json(folder.rows[0]);
             }
         }
     }
@@ -23,19 +23,15 @@ class FolderController {
             if (folder === undefined || newFolder === undefined) {
                 res.status(400).json({message:`Fields 'folder' and 'newFolder' does not exist`})
             } else {
-                const folders = await Folder.find({name:newFolder});
+                const folders = await db.query(`SELECT * FROM folder WHERE name=$1`,[newFolder]);
                 if (folders.length) {
-                    return res.json({
+                    return res.status(200).json({
                         message:`This folder already exist ('${folders[0].name}')`
                     });
                 }
-                const newfolder = new Folder({name:newFolder,path:`${folder}/${newFolder}`});
-                await newfolder.save();
-                console.log('Dir '+ newfolder.name + ' create');
-                return res.status(200).json({
-                    folderName: newfolder.name,
-                    path: newfolder.path
-                });
+                const newfolder = await db.query(`INSERT  INTO folder (name,path) values ($1, $2) RETURNING *`,[newFolder,`${folder}/${newFolder}`]);
+                console.log('Dir '+ newfolder.rows[0].name + ' create');
+                return res.status(200).json(newfolder.rows[0]);
             }
             
         } catch (e) {
@@ -44,8 +40,8 @@ class FolderController {
     }
 
     async getAll (req,res) {
-        const folders = await Folder.find();
-        res.status(200).json(folders)
+        const folders = await db.query('SELECT * FROM folder');
+        res.status(200).json(folders.rows)
     }
 
     async deleteFolder (req,res) {
@@ -54,16 +50,16 @@ class FolderController {
             if (id === undefined || !id) {
                 res.status(400).json({message:`Field 'id' does not exist`})
             } else {
-                const folder = await Folder.findByIdAndDelete(id);
-                if (folder === null) {
+                const folder = await db.query('DELETE FROM folder WHERE id=$1 RETURNING *',[id])
+                if (folder.rows.length === 0) {
                     res.status(200).json({
                         message:`Folder with id:${id} not found`
                     })
                 } else {
-                    console.log('Dir named ' + folder.name + ' was deleted');
+                    console.log('Dir named ' + folder.rows[0].name + ' was deleted');
                     res.status(200).json({
-                        message:'Folder named ' + folder.name + ' was deleted',
-                        folderId:folder._id,
+                        message:'Folder named ' + folder.rows[0].name + ' was deleted',
+                        folderId:folder.rows[0].id,
                     })
                 }
             }

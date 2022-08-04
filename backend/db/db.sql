@@ -1,0 +1,6 @@
+CREATE TABLE folder (
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255),
+    path VARCHAR(255) DEFAULT '',
+    date DATE DEFAULT CURRENT_DATE
+)
